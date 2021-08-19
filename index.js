@@ -52,6 +52,7 @@ async function run() {
                     if(typeof num == 'number'){
                         line = getlineNumberofChar(string, num)
                     }
+                    core.error('Parsing JSON failed for ' + file.filename);
                     annotations1.push({
                         title: 'Parsing JSON failed for ' + file.filename,
                         message: err.message,
@@ -90,7 +91,7 @@ async function run() {
             const file = require(resolve(item))
             /* Check if some fields exist, these things will fail the check. */
             if(typeof file.internalname == 'undefined'){
-                core.error(item + ' does not have mandatory  field internalname.')
+                core.error(item + ' does not have mandatory field internalname.')
                 annotations2.push({
                     title: item + ' does not have mandatory field internalname.',
                     message: 'The field internalname is required and this file doesn\'t have it.',
@@ -102,6 +103,7 @@ async function run() {
                 erroredCheck2 = true;
             } 
             if(typeof file.displayname == 'undefined'){
+                core.error(item + ' does not have mandatory field displayname.')
                 annotations2.push({
                     title: item + ' does not have mandatory field displayname.',
                     message: 'The field displayname is required and this file doesn\'t have it.',
@@ -113,6 +115,7 @@ async function run() {
                 erroredCheck2 = true;
             }
             if(typeof file.itemid == 'undefined'){
+                core.error(item + ' does not have mandatory field itemid.')
                 annotations2.push({
                     title: item + ' does not have mandatory field itemid.',
                     message: 'The field itemid is required and this file doesn\'t have it.',
@@ -136,6 +139,7 @@ async function run() {
                 }
             }
             if(!same){
+                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this.')
                 annotations2.push({
                     title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
                     message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.',
@@ -146,6 +150,7 @@ async function run() {
                 })
             }
             if(file.nbttag.includes("uuid:\"")){
+                core.warning('The nbt tag for item ' + item + ' contains a uuid, this is not allowed.')
                 annotations2.push({
                     title: 'The nbt tag for item ' + item + ' contains a uuid.',
                     message: 'The nbt tag for item ' + item + ' contains a uuid, this is not allowed.',
