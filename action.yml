@@ -1,6 +1,6 @@
-name: "Repo checks"
+name: "NotEnoughUpdates-REPO-Workflow"
 
-description: "Checks if all the files are fine."
+description: "Validate all changed files."
 
 inputs:
   repo-token:
