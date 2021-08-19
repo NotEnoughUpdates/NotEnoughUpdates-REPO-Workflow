@@ -3,7 +3,6 @@ const github = require("@actions/github");
 const resolve = require('path').resolve;
 const fs = require('fs')
 
-let failed = false;
 let erroredCheck2 = false;
 
 async function run() {
@@ -11,6 +10,7 @@ async function run() {
         const token = core.getInput("repo-token");
         const octokit = github.getOctokit(token);
 
+        /* Create two seperate checks in Github */
         const check1 = await octokit.rest.checks.create({
             ...github.context.repo,
             head_sha: github.context.payload.pull_request.head.sha,
@@ -28,10 +28,12 @@ async function run() {
         const annotations1 = [];
         const annotations2 = [];
         
+        /* Get changed files */
         const changed = await octokit.rest.pulls.listFiles({
             ...github.context.repo,
             pull_number: github.context.payload.pull_request.number,
         })
+        /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
         for(const i in changed.data){
             const file = changed.data[i];
@@ -44,12 +46,12 @@ async function run() {
                         items.push(file.filename)
                     }
                 }catch(err){
+                    /* If parsing fails find line of error and set annotation */
                     const num = parseInt(err.message.split(' ')[err.message.split(' ').length - 1]);
                     let line = undefined;
                     if(typeof num == 'number'){
                         line = getlineNumberofChar(string, num)
                     }
-                    failed = true;
                     annotations1.push({
                         title: 'Parsing JSON failed for ' + file.filename,
                         message: err.message,
@@ -62,6 +64,7 @@ async function run() {
             }
         }
 
+        /* Update first check to completed and depeding if we have annotations failure or succes + start second check */
         octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check1.data.id,
@@ -81,9 +84,11 @@ async function run() {
             status: 'in_progress',
         })
 
+        /* Start item checks */
         for(const i in items){
             const item = items[i];
             const file = require(resolve(item))
+            /* Check if some fields exist, these things will fail the check. */
             if(typeof file.internalname == 'undefined'){
                 core.error(item + ' does not have mandatory  field internalname.')
                 annotations2.push({
@@ -118,6 +123,8 @@ async function run() {
                 })
                 erroredCheck2 = true;
             }
+            /* Check if lore and nbt tag lore is the same + check that nbt tag doesn't include uuid or timestamp, these things will not cause
+            a failure but will simpely give a warning and an anotation, workflow will still succeed. */
             const display = file.nbttag.split('display:{Lore:[')[1].split('],')[0]
             let lines = display.split(/",[0-9]+:"/g)
             lines[0] = lines[0].substring(3)
@@ -161,6 +168,7 @@ async function run() {
             }
         }
 
+        /* Update final check to be succes if no warnings or errors, neutral if warnings and failure if errors */
         octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check2.data.id,
@@ -173,6 +181,7 @@ async function run() {
                 annotations: annotations2
             }
         })
+        /* Create a comment if any warnings or errors have been detected */
         if(annotations1.length > 0 || annotations2.length > 0) {
             octokit.rest.issues.createComment({
                 ...github.context.repo,
@@ -181,7 +190,8 @@ async function run() {
             })
         }
 
-        if(failed){
+        /* Fail action if there were any errors */
+        if(annotations1.length > 0 || erroredCheck2){
             core.setFailed('This action has failed, I have left some annotations in the files tab of the pull request.')
         }
     } catch (err) { 
