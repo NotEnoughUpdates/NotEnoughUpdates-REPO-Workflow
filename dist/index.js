@@ -459,7 +459,6 @@ async function run() {
             })
         } else {
             changed = getAllFiles('.')
-            console.log(changed)
         }
         /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
@@ -468,7 +467,9 @@ async function run() {
             if(isPull)
                 file = changed.data[i];
             else
-                file = changed[i]
+                file = changed[i];
+            console.log(file)
+            console.log(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json'))
             if(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json')){
                 let string = fs.readFileSync(resolve(file.filename))
                 string = string.toString();
