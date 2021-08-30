@@ -458,7 +458,8 @@ async function run() {
                 pull_number: github.context.payload.pull_request.number,
             })
         } else {
-            changed = getAllFiles(resolve('./'))
+            console.log(resolve('./'))
+            changed = getAllFiles(resolve('./items'))
             console.log(changed)
         }
         /* Compile list of items that need to be checked later + parse all JSON */
