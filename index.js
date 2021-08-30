@@ -11,7 +11,7 @@ async function run() {
         const token = core.getInput("repo-token");
         const octokit = github.getOctokit(token);
         const sha
-        const isPull = false;
+        let isPull = false
         if(typeof github.context.payload.pull_request != 'undefined'){
             console.log(typeof github.context.payload.pull_request)
             isPull = true
