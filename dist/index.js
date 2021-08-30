@@ -458,7 +458,7 @@ async function run() {
                 pull_number: github.context.payload.pull_request.number,
             })
         } else {
-            changed = getAllFiles(resolve('./'))
+            changed = getAllFiles('.')
             console.log(changed)
         }
         /* Compile list of items that need to be checked later + parse all JSON */
@@ -663,7 +663,7 @@ function getAllFiles(path) {
 	const dirs = allFiles.filter(file => file.isDirectory());
 	const names = [];
 	for(const file in files) {
-		names.push(__webpack_require__.ab + "NotEnoughUpdates-REPO-Workflow\\" + path + '\\' + files[file].name);
+		names.push(`${path}/${files[file].name}`);
 	}
 	for(const dir of dirs) {
 		const components = getAllFiles(`${path}/${dir.name}`);
@@ -671,6 +671,8 @@ function getAllFiles(path) {
 			names.push(components[value]);
 		}
 	}
+    for (const i in names)
+        names[i] = names[i].replace('./', '');
 	return names;
 }
   
