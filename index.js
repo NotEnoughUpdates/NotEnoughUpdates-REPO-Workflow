@@ -6,19 +6,17 @@ const fs = require('fs')
 let erroredCheck2 = false;
 
 async function run() {
-    console.log('1')
     try {
         const token = core.getInput("repo-token");
         const octokit = github.getOctokit(token);
         let sha
         let isPull = false
         if(typeof github.context.payload.pull_request != 'undefined'){
-            console.log(typeof github.context.payload.pull_request)
             isPull = true
             sha = github.context.payload.pull_request.head.sha
         }else{
-            console.log(github.context.payload)
-            sha = github.context.payload.head.sha
+            console.log(github.context)
+            sha = github.context.head.sha
         }
         console.log('passed')
 
