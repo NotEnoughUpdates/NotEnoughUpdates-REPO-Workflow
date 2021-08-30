@@ -493,11 +493,16 @@ async function run() {
                         line = getlineNumberofChar(string, num)
                     }
                     core.error('Parsing JSON failed for ' + file.filename);
+                    let path
+                    if(isPull)
+                        path = file.filename
+                    else
+                        path = file
                     annotations1.push({
                         title: 'Parsing JSON failed for ' + file.filename,
                         message: err.message,
                         annotation_level: 'failure',
-                        path: file.filename,
+                        path: path,
                         start_line: line,
                         end_line: line
                     })
