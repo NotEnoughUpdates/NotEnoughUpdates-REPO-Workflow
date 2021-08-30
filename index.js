@@ -62,7 +62,11 @@ async function run() {
             console.log(file)
             console.log(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json'))
             if(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json')){
-                let string = fs.readFileSync(resolve(file.filename))
+                if(isPull)
+                        path = file.filename
+                    else
+                        path = file
+                let string = fs.readFileSync(resolve(path))
                 string = string.toString();
                 try{
                     JSON.parse(string)
@@ -79,10 +83,6 @@ async function run() {
                         line = getlineNumberofChar(string, num)
                     }
                     let path
-                    if(isPull)
-                        path = file.filename
-                    else
-                        path = file
                     console.log(path)
                     core.error('Parsing JSON failed for ' + path);
                     annotations1.push({
