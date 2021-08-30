@@ -473,8 +473,6 @@ async function run() {
                 file = changed.data[i];
             else
                 file = changed[i];
-            console.log(file)
-            console.log(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json'))
             if(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json')){
                 let path
                 if(isPull)
@@ -497,7 +495,6 @@ async function run() {
                     if(typeof num == 'number'){
                         line = getlineNumberofChar(string, num)
                     }
-                    console.log(path)
                     core.error('Parsing JSON failed for ' + path);
                     annotations1.push({
                         title: 'Parsing JSON failed for ' + path,
@@ -585,10 +582,10 @@ async function run() {
                 }
             }
             if(!same){
-                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item' + item)
+                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item' + item + '\nNBT: ' + lines + '\nLore: ' + file.lore)
                 annotations2.push({
                     title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
-                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.',
+                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.\nNBT: ' + lines + '\nLore: ' + file.lore,
                     annotation_level: 'warning',
                     path: item,
                     start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
