@@ -576,17 +576,22 @@ async function run() {
             lines[0] = lines[0].substring(3)
             lines[lines.length -1] = lines[lines.length -1].substring(0, lines[lines.length -1].length-1)
             same = true;
+            let line;
             for(const l in lines){
                 lines[l] = lines[l].replace(/\\/g, '')
                 if(lines[l] != file.lore[l]){
                     same = false;
+                    line = l;
+                    break;
                 }
             }
             if(!same){
-                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item' + item + '\nNBT: ' + lines + '\nLore: ' + file.lore)
+                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item' + item + 'at line ' + 
+                line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line])
                 annotations2.push({
                     title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
-                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.\nNBT: ' + lines + '\nLore: ' + file.lore,
+                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.\nNBT: ' + lines + 'at line ' + 
+                    line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line],
                     annotation_level: 'warning',
                     path: item,
                     start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
