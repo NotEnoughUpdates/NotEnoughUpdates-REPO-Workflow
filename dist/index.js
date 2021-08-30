@@ -577,7 +577,7 @@ async function run() {
             lines[lines.length -1] = lines[lines.length -1].substring(0, lines[lines.length -1].length-1)
             same = true;
             for(const l in lines){
-                lines[l] = lines[l].replace('\\', '')
+                lines[l] = lines[l].replaceAll('\\', '')
                 if(lines[l] != file.lore[l]){
                     same = false;
                 }
