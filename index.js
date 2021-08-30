@@ -45,6 +45,7 @@ async function run() {
             })
         } else {
             changed = getAllFiles(resolve('./'))
+            console.log(changed)
         }
         /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
