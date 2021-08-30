@@ -498,6 +498,7 @@ async function run() {
                         path = file.filename
                     else
                         path = file
+                    console.log(path)
                     annotations1.push({
                         title: 'Parsing JSON failed for ' + file.filename,
                         message: err.message,
