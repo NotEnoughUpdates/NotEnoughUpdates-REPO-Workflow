@@ -10,7 +10,7 @@ async function run() {
     try {
         const token = core.getInput("repo-token");
         const octokit = github.getOctokit(token);
-        const sha
+        let sha
         let isPull = false
         if(typeof github.context.payload.pull_request != 'undefined'){
             console.log(typeof github.context.payload.pull_request)
@@ -41,7 +41,7 @@ async function run() {
         const annotations2 = [];
         
         /* Get changed files */
-        const changed
+        let changed
         if(isPull){
             changed = await octokit.rest.pulls.listFiles({
                 ...github.context.repo,
@@ -53,7 +53,7 @@ async function run() {
         /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
         for(const i in changed.data){
-            const file 
+            let file 
             if(isPull)
                 file = changed.data[i];
             else
