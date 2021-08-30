@@ -458,9 +458,7 @@ async function run() {
                 pull_number: github.context.payload.pull_request.number,
             })
         } else {
-            console.log(resolve('./'))
-            changed = getAllFiles(resolve('./items'))
-            console.log(changed)
+            changed = getAllFiles(resolve('./'))
         }
         /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
@@ -660,7 +658,7 @@ function getWordLine(input, word){
 
 function getAllFiles(path) {
 	const allFiles = fs.readdirSync(path, { withFileTypes: true });
-	const files = allFiles.filter(file => file.name.endsWith('js'));
+	const files = allFiles.filter(file => file.name.endsWith('json'));
 	const dirs = allFiles.filter(file => file.isDirectory());
 	const names = [];
 	for(const file in files) {
