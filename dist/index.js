@@ -590,7 +590,7 @@ async function run() {
                 line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line])
                 annotations2.push({
                     title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
-                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.\nNBT: ' + lines + 'at line ' + 
+                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this for item' + item  + 'at line ' + 
                     line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line],
                     annotation_level: 'warning',
                     path: item,
