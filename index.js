@@ -15,8 +15,7 @@ async function run() {
             isPull = true
             sha = github.context.payload.pull_request.head.sha
         }else{
-            console.log(github.context)
-            sha = github.context.head.sha
+            sha = github.context.sha
         }
         console.log('passed')
 
