@@ -476,10 +476,11 @@ async function run() {
             console.log(file)
             console.log(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json'))
             if(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json')){
+                let path
                 if(isPull)
-                        path = file.filename
-                    else
-                        path = file
+                    path = file.filename
+                else
+                    path = file
                 let string = fs.readFileSync(resolve(path))
                 string = string.toString();
                 try{
@@ -496,7 +497,6 @@ async function run() {
                     if(typeof num == 'number'){
                         line = getlineNumberofChar(string, num)
                     }
-                    let path
                     console.log(path)
                     core.error('Parsing JSON failed for ' + path);
                     annotations1.push({
@@ -521,7 +521,7 @@ async function run() {
             output: {
                 title: "Parsing JSON results",
                 summary: "The results after parsing all of the changed JSON files.",
-                annotations: annotations1
+                annotations: annotations1.slice(0, 50)
             }
         })
         octokit.rest.checks.update({
@@ -585,7 +585,7 @@ async function run() {
                 }
             }
             if(!same){
-                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this.')
+                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item' + item)
                 annotations2.push({
                     title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
                     message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this.',
@@ -629,7 +629,7 @@ async function run() {
             output: {
                 title: "File checks conclusions",
                 summary: "The results after checking all files for mistakes.",
-                annotations: annotations2
+                annotations: annotations2.slice(0, 50)
             }
         })
         /* Create a comment if any warnings or errors have been detected */
