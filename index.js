@@ -12,11 +12,14 @@ async function run() {
         const sha
         const isPull = false;
         if(typeof github.context.payload.pull_request != 'undefined'){
+            console.log(typeof github.context.payload.pull_request != 'undefined')
             isPull = true
             sha = github.context.payload.pull_request.head.sha
         }else{
+            console.log(github.context.payload)
             sha = github.context.payload.head.sha
         }
+        console.log('passed')
 
         /* Create two seperate checks in Github */
         const check1 = await octokit.rest.checks.create({
