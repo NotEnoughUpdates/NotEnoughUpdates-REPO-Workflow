@@ -462,7 +462,12 @@ async function run() {
         }
         /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
-        for(const i in changed.data){
+        let size
+        if(isPull)
+            size = changed.data.length
+        else
+            size = changed.length
+        for(let i = 0; i < size; i++){
             let file 
             if(isPull)
                 file = changed.data[i];
