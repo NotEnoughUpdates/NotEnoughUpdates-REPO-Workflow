@@ -6,21 +6,21 @@ const fs = require('fs')
 let erroredCheck2 = false;
 
 async function run() {
-    core.warning('1')
+    console.log('1')
     try {
         const token = core.getInput("repo-token");
         const octokit = github.getOctokit(token);
         const sha
         const isPull = false;
         if(typeof github.context.payload.pull_request != 'undefined'){
-            core.warning(typeof github.context.payload.pull_request)
+            console.log(typeof github.context.payload.pull_request)
             isPull = true
             sha = github.context.payload.pull_request.head.sha
         }else{
-            core.warning(github.context.payload)
+            console.log(github.context.payload)
             sha = github.context.payload.head.sha
         }
-        core.warning('passed')
+        console.log('passed')
 
         /* Create two seperate checks in Github */
         const check1 = await octokit.rest.checks.create({
