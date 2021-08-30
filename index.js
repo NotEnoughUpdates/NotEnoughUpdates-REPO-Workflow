@@ -9,18 +9,26 @@ async function run() {
     try {
         const token = core.getInput("repo-token");
         const octokit = github.getOctokit(token);
+        const sha
+        const isPull = false;
+        if(typeof github.context.payload.pull_request != 'undefined'){
+            isPull = true
+            sha = github.context.payload.pull_request.head.sha
+        }else{
+            sha = github.context.payload.head.sha
+        }
 
         /* Create two seperate checks in Github */
         const check1 = await octokit.rest.checks.create({
             ...github.context.repo,
-            head_sha: github.context.payload.pull_request.head.sha,
+            head_sha: sha,
             status: 'in_progress',
             started_at: new Date().toISOString(),
             name: 'Parsing JSON'
         })
         const check2 = await octokit.rest.checks.create({
             ...github.context.repo,
-            head_sha: github.context.payload.pull_request.head.sha,
+            head_sha: sha,
             status: 'queued',
             started_at: new Date().toISOString(),
             name: 'File checks'
@@ -29,21 +37,32 @@ async function run() {
         const annotations2 = [];
         
         /* Get changed files */
-        const changed = await octokit.rest.pulls.listFiles({
-            ...github.context.repo,
-            pull_number: github.context.payload.pull_request.number,
-        })
+        const changed
+        if(isPull){
+            changed = await octokit.rest.pulls.listFiles({
+                ...github.context.repo,
+                pull_number: github.context.payload.pull_request.number,
+            })
+        } else {
+            changed = getAllFiles(resolve('./'))
+        }
         /* Compile list of items that need to be checked later + parse all JSON */
         const items = []
         for(const i in changed.data){
-            const file = changed.data[i];
-            if(file.filename.endsWith('.json') && file.status != 'deleted'){
+            const file 
+            if(isPull)
+                file = changed.data[i];
+            else
+                file = changed[i]
+            if(isPull && file.filename.endsWith('.json') && file.status != 'deleted' || !isPull && file.endsWith('.json')){
                 let string = fs.readFileSync(resolve(file.filename))
                 string = string.toString();
                 try{
                     JSON.parse(string)
-                    if(file.filename.startsWith('items')){
+                    if(isPull && file.filename.startsWith('items')){
                         items.push(file.filename)
+                    }else if(!isPull && file.startsWith('items')){
+                        items.push(file)
                     }
                 }catch(err){
                     /* If parsing fails find line of error and set annotation */
@@ -69,7 +88,7 @@ async function run() {
         octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check1.data.id,
-            commit_id: github.context.payload.pull_request.head.sha,
+            commit_id: sha,
             conclusion: (annotations1.length > 0 ? 'failure' : 'success'),
             status: 'completed',
             output: {
@@ -81,7 +100,7 @@ async function run() {
         octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check2.data.id,
-            commit_id: github.context.payload.pull_request.head.sha,
+            commit_id: sha,
             status: 'in_progress',
         })
 
@@ -177,7 +196,7 @@ async function run() {
         octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check2.data.id,
-            commit_id: github.context.payload.pull_request.head.sha,
+            commit_id: sha,
             conclusion: (erroredCheck2 ? 'failure' : (annotations2 > 0 ? 'neutral' : 'success')),
             status: 'completed',
             output: {
@@ -187,7 +206,7 @@ async function run() {
             }
         })
         /* Create a comment if any warnings or errors have been detected */
-        if(annotations1.length > 0 || annotations2.length > 0) {
+        if(isPull && (annotations1.length > 0 || annotations2.length > 0)) {
             octokit.rest.issues.createComment({
                 ...github.context.repo,
                 issue_number: github.context.payload.pull_request.number,
@@ -221,6 +240,23 @@ function getWordLine(input, word){
             return parseInt(i) + 1;
     }
     return 1;
+}
+
+function getAllFiles(path) {
+	const allFiles = fs.readdirSync(path, { withFileTypes: true });
+	const files = allFiles.filter(file => file.name.endsWith('js'));
+	const dirs = allFiles.filter(file => file.isDirectory());
+	const names = [];
+	for(const file in files) {
+		names.push(resolve(`${path}/${files[file].name}`));
+	}
+	for(const dir of dirs) {
+		const components = getAllFiles(`${path}/${dir.name}`);
+		for(const value in components) {
+			names.push(components[value]);
+		}
+	}
+	return names;
 }
   
 run()
