@@ -431,7 +431,6 @@ async function run() {
         }else{
             sha = github.context.sha
         }
-        console.log('passed')
 
         /* Create two seperate checks in Github */
         const check1 = await octokit.rest.checks.create({
