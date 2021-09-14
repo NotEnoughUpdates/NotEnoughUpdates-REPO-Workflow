@@ -661,7 +661,7 @@ function getlineNumberofChar(data, index) {
         if (total_length >= index)
             return parseInt(i) + 1;
     }
-    return line.length;
+    return line.length - 1;
 }
 
 function getWordLine(input, word){
