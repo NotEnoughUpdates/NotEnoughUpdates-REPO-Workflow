@@ -509,7 +509,8 @@ async function run() {
         }
 
         /* Update first check to completed and depeding if we have annotations failure or succes + start second check */
-        octokit.rest.checks.update({
+        console.log(annotations1.slice(0, 50));
+        await octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check1.data.id,
             commit_id: sha,
@@ -521,7 +522,7 @@ async function run() {
                 annotations: annotations1.slice(0, 50)
             }
         })
-        octokit.rest.checks.update({
+        await octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check2.data.id,
             commit_id: sha,
@@ -623,7 +624,8 @@ async function run() {
         }
 
         /* Update final check to be succes if no warnings or errors, neutral if warnings and failure if errors */
-        octokit.rest.checks.update({
+        console.log(annotations2.slice(0, 50));
+        await octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check2.data.id,
             commit_id: sha,
@@ -637,7 +639,7 @@ async function run() {
         })
         /* Create a comment if any warnings or errors have been detected */
         if(isPull && (annotations1.length > 0 || annotations2.length > 0)) {
-            octokit.rest.issues.createComment({
+            await octokit.rest.issues.createComment({
                 ...github.context.repo,
                 issue_number: github.context.payload.pull_request.number,
                 body: `I've detected some problems you might want to take a look at, you can see them as annotations in the files tab.`
