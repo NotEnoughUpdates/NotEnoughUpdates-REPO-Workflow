@@ -509,7 +509,6 @@ async function run() {
         }
 
         /* Update first check to completed and depeding if we have annotations failure or succes + start second check */
-        console.log(annotations1.slice(0, 50));
         await octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check1.data.id,
@@ -624,7 +623,6 @@ async function run() {
         }
 
         /* Update final check to be succes if no warnings or errors, neutral if warnings and failure if errors */
-        console.log(annotations2.slice(0, 50));
         await octokit.rest.checks.update({
             ...github.context.repo, 
             check_run_id: check2.data.id,
@@ -663,6 +661,7 @@ function getlineNumberofChar(data, index) {
         if (total_length >= index)
             return parseInt(i) + 1;
     }
+    return line.length;
 }
 
 function getWordLine(input, word){
