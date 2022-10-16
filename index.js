@@ -118,6 +118,12 @@ async function run() {
         for(const i in items){
             const item = items[i];
             const file = require(resolve(item))
+	    let allowUUID = false
+	    //allows the usage of a uuid for certain items
+	    if (file.allowUUID) {
+	    	allowUUID = file.allowUUID;
+	    }
+		
             /* Check if some fields exist, these things will fail the check. */
             if(typeof file.internalname == 'undefined'){
                 core.error(item + ' does not have mandatory field internalname.')
@@ -184,7 +190,7 @@ async function run() {
                     end_line:  getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
                 })
             }
-            if(file.nbttag.includes("uuid:\"")){
+            if(file.nbttag.includes("uuid:\"") && !allowUUID){
                 core.warning('The nbt tag for item ' + item + ' contains a uuid, this is not allowed.')
                 annotations2.push({
                     title: 'The nbt tag for item ' + item + ' contains a uuid.',
