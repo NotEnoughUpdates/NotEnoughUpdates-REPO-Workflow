@@ -69,9 +69,9 @@ async function run() {
                 string = string.toString();
                 try{
                     JSON.parse(string)
-                    if(isPull && file.filename.startsWith('items')){
+                    if(isPull && file.filename.includes('items/')){
                         items.push(file.filename)
-                    }else if(!isPull && file.startsWith('items')){
+                    }else if(!isPull && file.includes('items/')){
                         items.push(file)
                     }
                 }catch(err){
@@ -157,53 +157,66 @@ async function run() {
             }
             /* Check if lore and nbt tag lore is the same + check that nbt tag doesn't include uuid or timestamp, these things will not cause
             a failure but will simpely give a warning and an anotation, workflow will still succeed. */
-            const display = file.nbttag.split('display:{Lore:[')[1].split('],')[0]
-            let lines = display.split(/",[0-9]+:"/g)
-            lines[0] = lines[0].substring(3)
-            lines[lines.length -1] = lines[lines.length -1].substring(0, lines[lines.length -1].length-1)
-            same = true;
-            let line;
-            for(const l in lines){
-                lines[l] = lines[l].replace(/\\/g, '')
-                if(lines[l] != file.lore[l]){
-                    same = false;
-                    line = l;
-                    break;
+            let display = file.nbttag.split('display:{Lore:[')[1]
+            if (typeof display != 'undefined') {
+                display = display.split('],')[0]
+                let lines = display.split(/",[0-9]+:"/g)
+                lines[0] = lines[0].substring(3)
+                lines[lines.length -1] = lines[lines.length -1].substring(0, lines[lines.length -1].length-1)
+                same = true;
+                let line;
+                for(const l in lines){
+                    lines[l] = lines[l].replace(/\\/g, '')
+                    if(lines[l] != file.lore[l]){
+                        same = false;
+                        line = l;
+                        break;
+                    }
                 }
-            }
-            if(!same){
-                core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item ' + item + ' at line ' + 
-                line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line])
+                if(!same){
+                    core.warning('The lore of the nbt tag and the lore in the array is not the same, please fix this for item ' + item + ' at line ' + 
+                    line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line])
+                    annotations2.push({
+                        title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
+                        message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this for item ' + item  + ' at line ' + 
+                        line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line],
+                        annotation_level: 'warning',
+                        path: item,
+                        start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
+                        end_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
+                    })
+                }
+                if(file.nbttag.includes("uuid:\"")){
+                    core.warning('The nbt tag for item ' + item + ' contains a uuid, this is not allowed.')
+                    annotations2.push({
+                        title: 'The nbt tag for item ' + item + ' contains a uuid.',
+                        message: 'The nbt tag for item ' + item + ' contains a uuid, this is not allowed.',
+                        annotation_level: 'warning',
+                        path: item,
+                        start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
+                        end_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
+                    })
+                }
+                if(file.nbttag.includes("timestamp:\"")){
+                    core.warning('The nbt tag for item ' + item + ' contains a timestamp, this is not allowed.')
+                    annotations2.push({
+                        title: 'The nbt tag for item ' + item + ' contains a timestamp',
+                        message: 'The nbt tag for item ' + item + ' contains a timestamp, this is not allowed.',
+                        annotation_level: 'warning',
+                        path: item,
+                        start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
+                        end_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
+                    })
+                }
+            } else {
+                core.warning('The nbt tag for item ' + item + ' does not contain lore, please add this.')
                 annotations2.push({
-                    title: 'The lore in the nbt tag and lore of ' + item + ' is not the same.',
-                    message: 'The lore of the nbt tag and the lore in the array is not the same, please fix this for item ' + item  + ' at line ' + 
-                    line + '\nNBT: ' + lines[line] + '\nLore: ' + file.lore[line],
+                    title: 'The nbt tag for item ' + item + ' does not contain lore.',
+                    message: 'The nbt tag for item ' + item + ' does not contain lore, please add this.',
                     annotation_level: 'warning',
                     path: item,
                     start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
-                    end_line:  getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
-                })
-            }
-            if(file.nbttag.includes("uuid:\"")){
-                core.warning('The nbt tag for item ' + item + ' contains a uuid, this is not allowed.')
-                annotations2.push({
-                    title: 'The nbt tag for item ' + item + ' contains a uuid.',
-                    message: 'The nbt tag for item ' + item + ' contains a uuid, this is not allowed.',
-                    annotation_level: 'warning',
-                    path: item,
-                    start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
-                    end_line:  getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
-                })
-            }
-            if(file.nbttag.includes("timestamp:\"")){
-                core.warning('The nbt tag for item ' + item + ' contains a timestamp, this is not allowed.')
-                annotations2.push({
-                    title: 'The nbt tag for item ' + item + ' contains a timestamp',
-                    message: 'The nbt tag for item ' + item + ' contains a timestamp, this is not allowed.',
-                    annotation_level: 'warning',
-                    path: item,
-                    start_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"'),
-                    end_line:  getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
+                    end_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
                 })
             }
         }
@@ -235,7 +248,8 @@ async function run() {
             core.setFailed('This action has failed, I have left some annotations in the files tab of the pull request.')
         }
     } catch (err) { 
-        core.setFailed(err.message);
+        console.error(err)
+        core.setFailed(err);
     }
 }
 
