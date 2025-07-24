@@ -219,6 +219,104 @@ async function run() {
                     end_line: getWordLine(fs.readFileSync(item).toString(), '"nbttag"')
                 })
             }
+
+            function checkItem(name, property) {
+                if (name === "SKYBLOCK_COIN") return;
+                if (fs.existsSync(`items/${name}.json`)) return;
+
+                const message = `Item reference ${name} in ${item} is unknown, please check this.`;
+                const line = getWordLine(
+                    fs.readFileSync(item).toString(),
+                    typeof property != 'undefined' ? `"${property}": "${name}` : `"${name}"`
+                );
+                core.warning(message);
+                annotations2.push({
+                    title: `Unknown item reference in ${item}`,
+                    message,
+                    annotation_level: 'warning',
+                    path: item,
+                    start_line: line,
+                    end_line: line
+                });
+            }
+
+            function checkIngredient(ingredient, property) {
+                checkItem(ingredient.split(":")[0], property);
+            }
+
+            function checkCraftingRecipe(recipe, property) {
+                for (const x of [...Array(3).keys()].map(i => String.fromCharCode('A'.charCodeAt(0) + i))) {
+                    for (const y of [...Array(3).keys()].map(i => i + 1)) {
+                        const slot = x + y;
+                        if (typeof recipe[slot] == 'undefined') {
+                            const message = `The crafting recipe for item ${item} is missing ingredient slot ${slot}, please add this.`;
+                            const line = getWordLine(fs.readFileSync(item).toString(), `"${property}":`);
+                            core.warning(message);
+                            annotations2.push({
+                                title: `Crafting recipe for item ${item} is missing ingredients.`,
+                                message,
+                                annotation_level: 'failure',
+                                path: item,
+                                start_line: line,
+                                end_line: line
+                            });
+                            erroredCheck2 = true;
+                        } else {
+                            if (recipe[slot] === "") continue;
+                            checkIngredient(recipe[slot], slot);
+                        }
+                    }
+                    if (typeof recipe.overrideOutputId != 'undefined') checkItem(recipe.overrideOutputId);
+                }
+            }
+
+            if (typeof file.recipe != 'undefined') {
+                checkCraftingRecipe(file.recipe, "recipe");
+            }
+
+            if (typeof file.recipes != 'undefined') {
+                for (const recipe of file.recipes) {
+                    switch (recipe.type) {
+                        case "crafting":
+                            checkCraftingRecipe(recipe, "recipes");
+                            break;
+                        case "forge":
+                            for (const ingredient of recipe.inputs) {
+                                checkIngredient(ingredient);
+                            }
+                            if (typeof recipe.overrideOutputId != 'undefined') checkItem(recipe.overrideOutputId);
+                            break;
+                        case "trade":
+                            checkIngredient(recipe.result, "result");
+                            checkIngredient(recipe.cost, "cost");
+                            break;
+                        case "drops":
+                            for (const drop of recipe.drops) {
+                                if (typeof drop == 'object') {
+                                    checkIngredient(drop.id, "id");
+                                } else {
+                                    checkIngredient(drop);
+                                }
+                            }
+                            break;
+                        case "npc-shop":
+                            for (const ingredient of recipe.cost) {
+                                checkIngredient(ingredient);
+                            }
+                            checkIngredient(recipe.result, "result");
+                            break;
+                        case "katgrade":
+                            checkIngredient(recipe.output, "output")
+                            checkIngredient(recipe.input, "input");
+                            if (typeof recipe.items != 'undefined') {
+                                for (const ingredient of recipe.items) {
+                                    checkIngredient(ingredient);
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
         }
 
         /* Update final check to be succes if no warnings or errors, neutral if warnings and failure if errors */
